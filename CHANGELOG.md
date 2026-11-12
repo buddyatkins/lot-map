@@ -2,6 +2,10 @@
 
 What changed in each version of lot-map, newest first. To get a new version, see [Updating](README.md#updating).
 
+## 0.6.0 (2026-11-12)
+
+- The map in a terminal: in iTerm2, kitty and Ghostty the pane shows it as a picture above the rows, moving as it does in the desktop app; with the new option `terminalView` it is drawn in the terminal's own characters instead, in any terminal, as `ring`, `lanes`, `tiles` or `city`. The new option `cellShape` keeps it round on the terminal's cells. See [In a terminal](README.md#in-a-terminal).
+
 ## 0.5.0 (2026-11-11)
 
 - Back on the Hooks station: the rows for a hook that asked for permission and for a check that took a moment. They went in 0.4.0, when the hook that sees them was removed for a plugin catalogue's rules; that catalogue takes mods only from organizations it has verified, so the hook is back as it was in 0.3.9.

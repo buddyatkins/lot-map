@@ -45,6 +45,21 @@ export type Setup = {
   colors: Partial<Palette>
   /** Who sits at the top of the ring: the person, or the network with the person at the bottom. */
   layout: 'you-top' | 'you-bottom'
+  /** How many times taller a terminal cell is than it is wide: what sizes the picture's box of cells. The engine does not say. */
+  cellShape: number
+  /** How the map looks in a terminal: the picture painted here, or one of the views drawn in characters. */
+  terminalView: TerminalView
+}
+
+const TERMINAL_VIEWS = ['picture', 'ring', 'lanes', 'tiles', 'city'] as const
+type TerminalView = (typeof TERMINAL_VIEWS)[number]
+
+/** iTerm2's own Monaco 12 draws cells about this much taller than wide; a terminal that keeps the picture's shape leaves the rest of a box too tall empty. */
+const CELL_SHAPE = 2.4
+
+function cellShapeFrom(value: unknown): number {
+  const n = typeof value === 'number' ? value : typeof value === 'string' && value.trim() !== '' ? Number(value) : Number.NaN
+  return Number.isFinite(n) && n >= 1.2 && n <= 4 ? n : CELL_SHAPE
 }
 
 const list = (v: unknown): string[] =>
@@ -71,6 +86,8 @@ export function setupFrom(options: Readonly<Record<string, unknown>> = {}): Setu
     background: options.background === 'transparent' ? 'transparent' : 'solid',
     colors: colorsFrom(options.colors),
     layout: options.layout === 'you-bottom' ? 'you-bottom' : 'you-top',
+    cellShape: cellShapeFrom(options.cellShape),
+    terminalView: TERMINAL_VIEWS.find(v => v === options.terminalView) ?? 'picture',
   }
 }
 
@@ -310,7 +327,7 @@ const CORE = 40
 /** Where spokes and pulses meet the core: outside the context ring. */
 const HUB = CORE + 8
 
-type Palette = {
+export type Palette = {
   ground: string
   raised: string
   line: string
@@ -327,7 +344,7 @@ type Palette = {
   trail: string
 }
 
-const DARK: Palette = {
+export const DARK: Palette = {
   ground: '#0a0c11',
   raised: '#12151c',
   line: '#272c36',
@@ -344,7 +361,7 @@ const DARK: Palette = {
   trail: '#ebe6dd',
 }
 
-const LIGHT: Palette = {
+export const LIGHT: Palette = {
   ground: '#f5f2ea',
   raised: '#ffffff',
   line: '#cfc9bc',
@@ -407,12 +424,12 @@ function colorsFrom(v: unknown): Partial<Palette> {
 
 const FONT = 'font-family="SF Mono, ui-monospace, Menlo, monospace"'
 
-const PULSE_MS = 800
-const RIPPLE_MS = 450
-const GLOW_MS = 3200
-const ALARM_MS = 6000
-const SWITCH_MS = 8000
-const DONE_MS = 1100
+export const PULSE_MS = 800
+export const RIPPLE_MS = 450
+export const GLOW_MS = 3200
+export const ALARM_MS = 6000
+export const SWITCH_MS = 8000
+export const DONE_MS = 1100
 const TRAIL_STOPS = 7
 /** A leg of the route stays for a while after it was drawn, then fades: the route shows where the work is going, and the spokes keep where it went. */
 export const TRAIL_HOLD_MS = 40_000

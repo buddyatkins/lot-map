@@ -22,7 +22,7 @@ claude plugin install lot-map --marketplace alexeyw/lot-map
 
 In the desktop app: click **+** next to the prompt box, then **Plugins**, **Add marketplace** with `alexeyw/lot-map`, then **Add plugin**.
 
-The pane opens by itself when a session starts. In a terminal it needs at least 144 columns and draws text only; otherwise type `/lot-map`. Built and tested on Claude Code 2.1.321 on macOS; users report it working on Windows as well.
+The pane opens by itself when a session starts. In a terminal it needs at least 144 columns; otherwise type `/lot-map`. Built and tested on Claude Code 2.1.321 on macOS; users report it working on Windows as well.
 
 ## Updating
 
@@ -82,6 +82,25 @@ Below the map are the current action with the context percentage, and the last 1
 | --- | --- | --- |
 | ![A change of model](docs/map-switch.png) | ![After the answer](docs/map-after.png) | ![Light colours](docs/map-light.png) |
 
+## In a terminal
+
+A terminal that shows pictures, such as iTerm2 3.5 and later, kitty or Ghostty, gets the map as a picture above the rows, moving as it does in the desktop app. Claude Code must draw in fullscreen, as it does unless `CLAUDE_CODE_NO_FLICKER=0` is set; inside tmux, set `allow-passthrough on` and `focus-events on`. Any other terminal shows the rows alone, as before, and so does a pane narrower than 24 columns.
+
+The mod paints the picture itself, from the same drawing as the desktop app's, with letters from the X.Org misc-fixed bitmap fonts, which are in the public domain. It paints up to thirty frames a second while anything on the map moves, the core's breath included, and stops ten minutes after the map last changed; a task still running then gets a frame every five seconds.
+
+A terminal does not say whether it is dark or light, so with `theme` on `auto` the map is dark; on a light terminal, set `theme` to `light`. The map lies on the terminal's own background, with no box around it; `colors` with `background=#rrggbb` gives it one.
+
+Nor does a terminal say how tall its cells are. `cellShape` does: how many times taller a cell is than it is wide, 2.4 by default, as iTerm2 draws Monaco 12, and about 2 for Menlo in kitty. If the picture leaves an empty band below it, raise it; if the band is at its right, lower it. It keeps the views below round too.
+
+### Views in characters
+
+`terminalView` draws the map in the terminal's own characters instead, in any terminal, tmux included. Each view moves as the picture does, in a box up to 72 columns by 30 rows above the rows; a pane smaller than 40 by 16 shows the rows alone.
+
+- `ring`: the map's own ring of stations, drawn in braille dots, with the pulses, glows, hands, route and context ring of the picture. A font without braille, such as Monaco, borrows the dots from another font.
+- `lanes`: a lane for each station over the last half hour, on a scale that gives the last minute as much room as the half hour before it. Running calls are bars that grow from the right edge; subagents and background tasks get rows of their own under Agents.
+- `tiles`: a board of tiles around the core, each with its count, a strip of the last few minutes and its last action. A rim turns heavy while its station runs, and the core's rim is the context gauge.
+- `city`: a city at night. Each station is a building and each call a window, lit white and cooling to ember with age; each model step is a star, the moon fills with the context, and subagents fly as drones.
+
 ## Options
 
 The install offers them on a screen. Later, use `/config` in a terminal or `claude plugin configure`, then restart the session.
@@ -101,6 +120,8 @@ The install offers them on a screen. Later, use `/config` in a terminal or `clau
 | `background` | `solid` | the map's own background, or `transparent`, which lets the pane behind it show through. The rim around the labels keeps the background's colour, so on a surface of another shade it shows as a faint halo |
 | `colors` | none | colours of your own, each as `name=#rrggbb`; see [Colours of your own](#colours-of-your-own) |
 | `layout` | `you-top` | where you are on the map: `you-top`, or `you-bottom`, which turns the ring half a turn so that you are at the bottom and the network and the browser at the top |
+| `cellShape` | `2.4` | how many times taller a terminal cell is than it is wide, from 1.2 to 4, so that the map's picture fills its box; see [In a terminal](#in-a-terminal) |
+| `terminalView` | `picture` | how the map looks in a terminal: `picture`, or `ring`, `lanes`, `tiles` or `city`, drawn in characters in any terminal; see [Views in characters](#views-in-characters) |
 
 For example, Russian labels and your own memory server:
 
@@ -172,6 +193,12 @@ claude plugin validate .
 ```
 
 Words live in `hooks/text.ts`; a new language is one more table there and one more value of `language` in `.claude-plugin/plugin.json`.
+
+The terminal picture is painted by `hooks/raster.ts`, which reads the drawing `drawMap` makes. A test paints every kind of drawing and fails on anything the painter does not know, so a change to the drawing that needs more of SVG shows there first. Another, `the font has every letter the map writes`, names the letters a new language needs added to the font. The letters in `hooks/font.ts` are generated from the X.Org misc-fixed BDF files ([font-misc-misc](https://www.x.org/releases/individual/font/)):
+
+```bash
+node scripts/font.mjs hooks/font.ts 6x13.bdf 7x14.bdf 9x18.bdf 10x20.bdf --bold 7x14B.bdf
+```
 
 ## License
 

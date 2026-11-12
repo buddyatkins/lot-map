@@ -4,8 +4,11 @@ import type { EngineInterface, Register } from 'claude-code'
 import type { Board, Entry, StationId, Status } from '../types'
 import { STATIONS, classify, clean, describeNow, drawMap, firstLine, foldRows, formatMs, memoryIds, setupFrom, shortModel, taskNotice, taskOf } from './map'
 import type { Setup } from './map'
+import { drawTerminal, terminalMap } from './terminal'
 
 const PANE = 'lot-map'
+/** The pane paints nothing under its body: what lies behind it, the terminal's own background, shows through. */
+const PANE_GROUND = 'transparent'
 const KEEP = 80
 const CREW = 12
 
@@ -157,9 +160,12 @@ export const register: Register = (on, options) => {
   let lastModel: string | undefined
   let modelKey = 'model'
 
+  // In a terminal the map above the rows: a picture painted here, or the view in characters the person chose.
+  const terminal = terminalMap(setup)
+
   on('session.start', async ($, e, next) => {
     await quietly(() => $.command.register({ name: 'lot-map', description: t.command }))
-    void quietly(() => $.ui.open({ id: PANE, title: t.title }))
+    void quietly(() => $.ui.open({ id: PANE, title: t.title, backgroundColor: PANE_GROUND }))
     await quietly(async () => {
       modelKey = `model:${e.cwd}`
       const kept = await $.store.get(modelKey)
@@ -169,7 +175,7 @@ export const register: Register = (on, options) => {
   })
 
   on('command.run', { command: 'lot-map' }, async $ => {
-    const opened = await $.ui.open({ id: PANE, title: t.title })
+    const opened = await $.ui.open({ id: PANE, title: t.title, backgroundColor: PANE_GROUND })
     return { text: opened.isPlaced ? t.opened : t.cannotOpen(String(opened.reason)) }
   })
 
@@ -353,10 +359,12 @@ export const register: Register = (on, options) => {
 
     if (e.surface === 'terminal') {
       const tally = STATIONS.filter(s => (state.counts[s.id] ?? 0) > 0).map(s => `${t.stations[s.id]} ${state.counts[s.id]}`).join(' · ')
+      const { map, hidesTally } = await drawTerminal($, e, state, now, terminal)
       return (
         <Box flexDirection="column">
+          {map !== undefined ? [map] : []}
           {current}
-          <Text dimColor>{tally === '' ? t.noCounts : tally}</Text>
+          {hidesTally ? [] : [<Text dimColor>{tally === '' ? t.noCounts : tally}</Text>]}
           {feed}
         </Box>
       )

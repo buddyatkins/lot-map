@@ -1,6 +1,6 @@
 {
   "name": "lot-map",
-  "version": "0.5.0",
+  "version": "0.6.0",
   "description": "A live map beside the chat: memory, files, shell, web, model, agents, skills and hooks light up as they are used",
   "author": {
     "name": "Aleksei Volodin",
@@ -121,6 +121,25 @@
       ],
       "default": "you-top",
       "description": "Where you are on the map: at the top, or at the bottom with the network and the browser at the top."
+    },
+    "cellShape": {
+      "type": "number",
+      "title": "Terminal cell shape",
+      "default": 2.4,
+      "description": "How many times taller a terminal cell is than it is wide, so that the map's picture fills its box: about 2.4 for iTerm2's Monaco 12, about 2 for Menlo in kitty. Raise it if the map leaves an empty band below it or looks stretched tall; lower it if the band is at its right or the map looks squashed. From 1.2 to 4."
+    },
+    "terminalView": {
+      "type": "string",
+      "title": "Terminal view",
+      "options": [
+        "picture",
+        "ring",
+        "lanes",
+        "tiles",
+        "city"
+      ],
+      "default": "picture",
+      "description": "How the map looks in a terminal. picture paints the map itself, where the terminal shows pictures; ring, lanes, tiles and city draw it in characters, in any terminal: the ring of stations, a lane for each station over the last half hour, a board of tiles, or a city at night."
     }
   }
 }
